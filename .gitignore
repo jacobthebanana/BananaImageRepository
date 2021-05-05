@@ -1,5 +1,7 @@
 **/__pycache__
 env
+**/migrations
 
 # Configurations
 .env
+labels.txt

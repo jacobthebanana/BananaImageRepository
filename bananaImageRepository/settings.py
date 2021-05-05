@@ -10,6 +10,11 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
+from dotenv import load_dotenv
+load_dotenv()
+
+import os
+import json
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -20,17 +25,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-@mf!!6j(ip67psqcqo#wbq6s@*)2uak0gxnlflulzwy*yfew%d'
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS").split(",")
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    'imageRepository.apps.ImagerepositoryConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -75,8 +81,14 @@ WSGI_APPLICATION = 'bananaImageRepository.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        # 'ENGINE': 'django.db.backends.sqlite3',
+        # 'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get("PSQL_DB_NAME"),
+        'USER': os.environ.get("PSQL_USER"),
+        'PASSWORD': os.environ.get("PSQL_USER_PASSWORD"),
+        'HOST': os.environ.get("PSQL_HOST"),
+        'PORT': os.environ.get("PSQL_PORT"),
     }
 }
 
@@ -123,3 +135,16 @@ STATIC_URL = '/static/'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+S3_ENDPOINT_URL = os.environ.get("S3_ENDPOINT_URL")
+S3_HOSTNAME = os.environ.get("S3_HOSTNAME")
+S3_BUCKETNAME = os.environ.get("S3_BUCKETNAME")
+
+S3_ACCESS_KEY = os.environ.get("S3_ACCESS_KEY")
+S3_SECRET_KEY = os.environ.get("S3_SECRET_KEY")
+
+
+IMAGE_CLASSIFICATION_API_URL = os.environ.get("IMAGE_CLASSIFICATION_API_URL")
+
+with open(BASE_DIR.joinpath("labels.txt")) as labelsFile:
+    IMAGE_CLASSIFICATION_LABELS = json.load(labelsFile)
