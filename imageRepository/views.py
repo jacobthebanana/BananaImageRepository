@@ -1,7 +1,9 @@
 from django.http import HttpResponse
-from django.shortcuts import render
+from django.shortcuts import render, redirect, get_object_or_404
 from django.template import loader
 from django.core.exceptions import SuspiciousOperation
+
+import datetime
 
 import base64
 import hashlib
@@ -15,7 +17,7 @@ from bananaImageRepository.settings import IMAGE_CLASSIFICATION_API_URL, IMAGE_C
 def uploadView(request):
     if request.method == "GET":
         form = ImageUploadForm()
-        return render(request, 'add_image/add_image.html', {'form': form})
+        return render(request, 'add_image/add_image.html', getRenderContext(context={'form': form}))
     
     elif request.method == "POST":
         form = ImageUploadForm(request.POST, request.FILES)
@@ -25,7 +27,7 @@ def uploadView(request):
             imageFileBytes = imageFile.file.read()
             imageFileSize = imageFile.size
 
-            md5 = str(hashlib.md5(imageFileBytes))
+            md5 = hashlib.md5(imageFileBytes).hexdigest()
 
             if Image.objects.filter(md5=md5):
                 raise SuspiciousOperation("This image file already exists in the database.")
@@ -39,15 +41,24 @@ def uploadView(request):
 
             prediction = response.json()['predictions'][0]['classes']
             prediction_label_key = str(int(prediction) - 1)
-            labels = IMAGE_CLASSIFICATION_LABELS[prediction_label_key].split()
+            labels = IMAGE_CLASSIFICATION_LABELS[prediction_label_key].split(", ")
 
-            image = Image()
-            image.initialize(
-                name=imageFileName,
-                imageFileBytes=imageFileBytes,
-                imageFileSize=imageFileSize,
+            image = Image.objects.create(
+                fileName=(
+                    datetime.datetime.now().strftime("%Y-%m-%d-_%H-%M-%S") + "-_" +
+                    imageFileName
+                ),
+                size=imageFileSize,
+                md5=md5,
+                attribution=form.cleaned_data["attribution"]
             )
 
+            try: 
+                image.upload(imageFileBytes)
+            except Exception as e:
+                image.delete()
+                raise e
+            
             image.save()
 
             for label_name in labels:
@@ -65,8 +76,36 @@ def uploadView(request):
 
             image.save()
 
-            return HttpResponse(labels)
+            context = {
+                "image": image,
+            }
+
+            return render(request, "add_image/add_image_success.html", getRenderContext(context=context))
 
 
-def uploadConfirmationView(request):
-    return HttpResponse("Upload confirmation placeholder.")
+def allImagesView(request, labelID=None):
+    if not labelID:
+        images = Image.objects.all()
+        label = None
+    else:
+        label = get_object_or_404(Label, id=labelID)
+        images = Image.objects.filter(labels__in=[label])
+
+    renderContext = {
+        "label": label,
+        "images": images,
+    }
+    return render(request, "list_images/list_images.html", getRenderContext(context=renderContext))
+
+
+def getImageURL(request, imageID: int):
+    """
+    Speed up loading of elements other than images.  
+    """
+    image = get_object_or_404(Image, id=imageID)
+    return redirect(image.getURL())
+
+
+def getRenderContext(context={}):
+    context["labels"] = Label.objects.all().order_by('name')
+    return context

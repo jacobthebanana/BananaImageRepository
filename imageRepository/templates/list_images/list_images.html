@@ -1,0 +1,40 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+{% if label %}
+<h1>Images with Label: {{label.name}}</h1>
+{% else %}
+<h1 style="margin-top: 0.7em;">All Images</h1>
+{% endif %}
+
+<div class="row">
+  {% if images %}
+    {% for image in images %}
+    <div class="col" style="flex-grow: 0;">
+      <div class="card" style="width: 20rem; margin-right: 10%; margin-bottom: 2em;">
+          <img src="{% url 'getImageURL' imageID=image.id %}" class="card-img-top" alt="Image of {{image.allLabels}}">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">{{image.fileName}}</h5>
+              <p class="card-text"><h6>Labels:</h6> 
+                  <ul>
+                      {% for label in image.labels.all %}
+                      <li>{{label.name}}</li>
+                      {% endfor %}
+                  </ul>
+                  <br>
+                  <h6>Attribution:</h6> 
+                  {{image.attribution}}
+              </p>
+              <a href="{% url 'getImageURL' imageID=image.id %}" class="btn btn-primary">Download</a>
+            </div>
+          </div>
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+  <p>No images yet. </p>
+  {% endif %}
+</div>
+</table>
+{% endblock %}

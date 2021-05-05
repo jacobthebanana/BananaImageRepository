@@ -11,18 +11,8 @@ import uuid
 class Image(models.Model):
     # The Django developers recommends not to override the __init__
     # method of modes.
-    def initialize(self, name, imageFileBytes, imageFileSize, imageFileMD5):        
-        self.fileName = (
-            datetime.datetime.now().strftime("%Y-%m%d-%H-%M-%S") + "-" +
-            name
-        )
-
-        self.s3ObjectUUID = uuid.uuid4()
-        self.size = imageFileSize
-        self.md5 = imageFileMD5
-
-        s3_client = getS3Client()
-
+    def upload(self, imageFileBytes):     
+        s3_client = getS3Client()   
         s3_client.put_object(
             Bucket=S3_BUCKETNAME, 
             Key=self.fileName, 
@@ -54,6 +44,10 @@ class Image(models.Model):
             Key=self.fileName,
         )
         
+        for label in self.labels.all():
+            if len(label.image_set.all()) <= 1:
+                label.delete()
+        
         super().delete(*args, **kwargs)
 
 
@@ -68,8 +62,9 @@ class Image(models.Model):
     # Filenames could be as long as what s3 supports.
     fileName = models.CharField(max_length=255, verbose_name="File name")
     size = models.BigIntegerField(verbose_name="File Size (bytes)")
-
     md5 = models.CharField(max_length=32, verbose_name="Image File MD5")
+
+    attribution = models.CharField(max_length=1000, verbose_name="Image attribution")
 
     labels = models.ManyToManyField("Label")
 

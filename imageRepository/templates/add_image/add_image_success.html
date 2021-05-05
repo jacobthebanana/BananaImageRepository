@@ -1,0 +1,22 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+<h1>Image Upload- Success</h1>
+
+<img src="{% url 'getImageURL' imageID=image.id %}" alt="Image of {{image.allLabels}}">
+<h6>Size:</h6>
+  <p>
+    {{image.size}} bytes
+  </p>
+
+<h6>Labels: </h6>
+  <ul>
+    {% for label in image.labels.all %}
+    <li>{{label.name}}</li>
+    {% endfor %}
+  </ul>
+
+<h6>Attribution:</h6>
+  <p>{{image.attribution}}</p>
+{% endblock %}
+

@@ -16,10 +16,12 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
-from imageRepository.views import uploadView, uploadConfirmationView
+from imageRepository.views import uploadView, allImagesView, getImageURL
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('add_image/', uploadView),
-    path('add_image_confirmation/', uploadConfirmationView)
+    path('add_image/', uploadView, name="upload"),
+    path('get_image_url/<int:imageID>', getImageURL, name="getImageURL"),
+    path('', allImagesView, name="allImagesView"),
+    path('search/<int:labelID>', allImagesView, name="searchByLabel"),
 ]
