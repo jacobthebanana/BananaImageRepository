@@ -39,6 +39,9 @@ def uploadView(request):
                 data='{"instances" : [{"b64": "%s"}]}' % encodedImage
             )
 
+            if response.status_code != 200:
+                raise SuspiciousOperation("The image classification API returned a non-200 response code.")
+
             prediction = response.json()['predictions'][0]['classes']
             prediction_label_key = str(int(prediction) - 1)
             labels = IMAGE_CLASSIFICATION_LABELS[prediction_label_key].split(", ")
@@ -81,6 +84,9 @@ def uploadView(request):
             }
 
             return render(request, "add_image/add_image_success.html", getRenderContext(context=context))
+        
+        else:
+            raise SuspiciousOperation("Invalid POST request.")
 
 
 def allImagesView(request, labelID=None):
