@@ -1,9 +1,18 @@
 {% extends "base_generic.html" %}
 
 {% block content %}
-<h1>Image Upload- Success</h1>
 
+{% if not demo %}
+<h1>Image Upload- Success</h1>
 <img src="{% url 'getImageURL' imageID=image.id %}" alt="Image of {{image.allLabels}}">
+{% else %}
+<h1>Image Upload- Demo mode</h1>
+<div class="alert alert-warning" role="alert">
+  This server is running in demo mode. The image was not stored and hence not presented here.
+</div>
+
+{% endif %}
+
 <h6>Size:</h6>
   <p>
     {{image.size}} bytes
@@ -11,12 +20,14 @@
 
 <h6>Labels: </h6>
   <ul>
-    {% for label in image.labels.all %}
-    <li>{{label.name}}</li>
+    {% for label_name in predictions %}
+    <li>{{label_name}}</li>
     {% endfor %}
   </ul>
 
+{% if image.attribution %}
 <h6>Attribution:</h6>
   <p>{{image.attribution}}</p>
+{% endif %}
 {% endblock %}
 

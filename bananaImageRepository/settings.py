@@ -28,7 +28,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get("DEBUG")
 
 ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS").split(",")
 
@@ -148,3 +148,5 @@ IMAGE_CLASSIFICATION_API_URL = os.environ.get("IMAGE_CLASSIFICATION_API_URL")
 
 with open(BASE_DIR.joinpath("labels.txt")) as labelsFile:
     IMAGE_CLASSIFICATION_LABELS = json.load(labelsFile)
+
+DEMO_MODE = os.environ.get("DEMO_MODE")

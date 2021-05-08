@@ -3,6 +3,19 @@
 {% block content %}
 <h1>Image Upload</h1>
 
+{% if errorMessage %}
+<div class="alert alert-danger" role="alert">
+  {{ errorMessage }}
+</div>
+{% endif %}
+
+{% if demo %}
+<div class="alert alert-info" role="alert">
+  This server is running in demo mode. <br/>
+  Images uploaded to the server would be automatically labeled and deleted. No copy would be stored. <br/>
+</div>
+{% endif %}
+
 <form method="post" enctype="multipart/form-data">
   {% csrf_token %}
   <ul>

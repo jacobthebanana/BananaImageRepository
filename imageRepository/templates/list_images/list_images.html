@@ -23,8 +23,10 @@
                       {% endfor %}
                   </ul>
                   <br>
-                  <h6>Attribution:</h6> 
-                  {{image.attribution}}
+                  {% if image.attribution %}
+                    <h6>Attribution:</h6> 
+                    {{image.attribution}}
+                  {% endif %}
               </p>
               <a href="{% url 'getImageURL' imageID=image.id %}" class="btn btn-primary">Download</a>
             </div>

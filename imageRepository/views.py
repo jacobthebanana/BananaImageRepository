@@ -11,13 +11,18 @@ import requests
 
 from imageRepository.forms import ImageUploadForm
 from imageRepository.models import Image, Label
-from bananaImageRepository.settings import IMAGE_CLASSIFICATION_API_URL, IMAGE_CLASSIFICATION_LABELS
+from bananaImageRepository.settings import IMAGE_CLASSIFICATION_API_URL, IMAGE_CLASSIFICATION_LABELS, DEMO_MODE
 
 
 def uploadView(request):
     if request.method == "GET":
         form = ImageUploadForm()
-        return render(request, 'add_image/add_image.html', getRenderContext(context={'form': form}))
+        context={'form': form}
+        
+        if DEMO_MODE:
+            context["demo"] = True
+
+        return render(request, 'add_image/add_image.html', getRenderContext(context=context))
     
     elif request.method == "POST":
         form = ImageUploadForm(request.POST, request.FILES)
@@ -30,7 +35,10 @@ def uploadView(request):
             md5 = hashlib.md5(imageFileBytes).hexdigest()
 
             if Image.objects.filter(md5=md5):
-                raise SuspiciousOperation("This image file already exists in the database.")
+                return render(request, 'add_image/add_image.html', getRenderContext(context={
+                    'form': form, 
+                    "errorMessage": "This image already exists in the database.",
+                }))
 
             encodedImage = base64.b64encode(imageFileBytes).decode('utf-8')
             
@@ -46,15 +54,25 @@ def uploadView(request):
             prediction_label_key = str(int(prediction) - 1)
             labels = IMAGE_CLASSIFICATION_LABELS[prediction_label_key].split(", ")
 
-            image = Image.objects.create(
+            image = Image(
                 fileName=(
                     datetime.datetime.now().strftime("%Y-%m-%d-_%H-%M-%S") + "-_" +
                     imageFileName
                 ),
                 size=imageFileSize,
                 md5=md5,
-                attribution=form.cleaned_data["attribution"]
+                attribution=form.cleaned_data["attribution"],
             )
+
+            if DEMO_MODE:
+                context = {
+                    "image": image,
+                    "predictions": labels,
+                    "demo": True
+                }
+
+                return render(request, "add_image/add_image_success.html", getRenderContext(context=context))
+
 
             try: 
                 image.upload(imageFileBytes)
@@ -74,13 +92,13 @@ def uploadView(request):
                 else:
                     label_object = label_object_matches.first()
 
-                print(image)
-                image.labels.add(label_object) 
+            image.labels.add(label_object) 
 
             image.save()
 
             context = {
                 "image": image,
+                "predictions": labels,
             }
 
             return render(request, "add_image/add_image_success.html", getRenderContext(context=context))
