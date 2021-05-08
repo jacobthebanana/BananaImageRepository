@@ -8,3 +8,5 @@ static
 # Configurations
 .env
 labels.txt
+
+Dockerfile
