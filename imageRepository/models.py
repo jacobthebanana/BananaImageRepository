@@ -1,12 +1,14 @@
 from django.db import models
 import datetime
 
-from bananaImageRepository.settings import S3_HOSTNAME, S3_BUCKETNAME, S3_ACCESS_KEY, S3_SECRET_KEY, S3_ENDPOINT_URL
+from bananaImageRepository.settings import S3_PUBLIC_URL, S3_BUCKETNAME
 from s3.s3_utils import getS3Client
 
 import io
 import boto3
 import uuid
+
+from urllib.parse import urlparse
 
 class Image(models.Model):
     # The Django developers recommends not to override the __init__
@@ -23,10 +25,14 @@ class Image(models.Model):
         """
         Get presigned URL for accessing this s3 object.
         `validFor` is measured in seconds.
+
+        The browser-accessible public URL (e.g., http://localhost:9000/something)
+        might be distinct from the endpoint URL 
+        (e.g., http://172.16.0.3/something, internal to the Docker network.)
         """
         s3_client = getS3Client()
         
-        url = s3_client.generate_presigned_url(
+        originalPresignedS3Url = s3_client.generate_presigned_url(
             'get_object',
             Params={
                 'Bucket': S3_BUCKETNAME,
@@ -35,7 +41,9 @@ class Image(models.Model):
             ExpiresIn=validFor,
         )
 
-        return url
+        parsedUrl = urlparse(originalPresignedS3Url)
+        
+        return S3_PUBLIC_URL + parsedUrl.path + "?" + parsedUrl.query
 
     def delete(self, *args, **kwargs):
         s3_client = getS3Client()

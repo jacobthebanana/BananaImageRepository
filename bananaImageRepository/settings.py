@@ -13,6 +13,9 @@ import os
 import json
 from pathlib import Path
 
+from dotenv import load_dotenv
+load_dotenv()
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -84,7 +87,7 @@ DATABASES = {
         'USER': os.environ.get("PSQL_USER"),
         'PASSWORD': os.environ.get("PSQL_USER_PASSWORD"),
         'HOST': os.environ.get("PSQL_HOST"),
-        'PORT': os.environ.get("PSQL_PORT"),
+        'PORT': os.getenv("PSQL_PORT", 5432),
     }
 }
 
@@ -133,7 +136,7 @@ STATIC_URL = '/static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 S3_ENDPOINT_URL = os.environ.get("S3_ENDPOINT_URL")
-S3_HOSTNAME = os.environ.get("S3_HOSTNAME")
+S3_PUBLIC_URL = os.environ.get("S3_PUBLIC_URL")
 S3_BUCKETNAME = os.environ.get("S3_BUCKETNAME")
 
 S3_ACCESS_KEY = os.environ.get("S3_ACCESS_KEY")

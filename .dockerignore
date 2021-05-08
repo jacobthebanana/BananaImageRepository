@@ -10,3 +10,7 @@ static
 labels.txt
 
 Dockerfile
+
+database
+models
+minio
