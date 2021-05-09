@@ -1,4 +1,4 @@
-version: "3.9"
+version: "3"
    
 services:
   database:
@@ -18,19 +18,6 @@ services:
       - ./models/resnet/:/models/resnet
     ports:
       - "8502:8501"
-
-  web:
-    build: .
-    volumes:
-      - ./labels.txt:/app/labels.txt
-    ports:
-      - "8000:8000"
-    depends_on:
-      - database
-      - image-classifier
-      - minio
-    env_file: 
-      - .env
 
   minio:
     image: minio/minio
@@ -54,6 +41,19 @@ services:
       /bin/sh -c "
       /usr/bin/mc config host add myminio http://minio:9000 $S3_ACCESS_KEY $S3_SECRET_KEY;
       /usr/bin/mc mb myminio/$S3_BUCKETNAME;
-      /usr/bin/mc policy download myminio/$S3_BUCKETNAME;
+      /usr/bin/mc policy set download myminio/$S3_BUCKETNAME;
       exit 0;
       "
+
+  web:
+    build: .
+    volumes:
+      - ./labels.txt:/app/labels.txt
+    ports:
+      - "8000:8000"
+    depends_on:
+      - database
+      - image-classifier
+      - minio
+    env_file: 
+      - .env
