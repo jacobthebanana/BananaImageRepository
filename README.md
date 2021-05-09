@@ -89,6 +89,11 @@ Two more folders would be created in the current directory. That's where all the
 - `database` for PostgreSQL.
 - `minio` for storing files uploaded to the local S3 server.
 
+Stop the server with the following command:
+```bash
+docker-compose down
+```
+
 ### Reverse Proxy and SSL Gateway
 There are two ports to reverse-proxy. The exact port numbers could be customized in the Docker-compose file.
 - port `8000` for the Image Repository Django web app.
