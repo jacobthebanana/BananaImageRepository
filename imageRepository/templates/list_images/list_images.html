@@ -19,7 +19,7 @@
               <p class="card-text"><h6>Labels:</h6> 
                   <ul>
                       {% for label in image.labels.all %}
-                      <li>{{label.name}}</li>
+                      <li><a href="{% url 'searchByLabel' labelID=label.id %}">{{label.name}}</a></li>
                       {% endfor %}
                   </ul>
                   <br>
