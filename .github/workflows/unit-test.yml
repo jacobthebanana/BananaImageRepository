@@ -1,0 +1,47 @@
+name: Banana Image Repository
+
+on: [push, pull_request]
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Retrieve models and initialize .env
+      run: |
+        mkdir models
+        
+        wget -O labels.txt \
+          https://github.com/jacobthebanana/BananaImageRepository/releases/download/files/labels.txt
+        wget -O models/resnet_v2_fp32_savedmodel_NHWC_jpg.tar.gz \
+          http://download.tensorflow.org/models/official/20181001_resnet/savedmodels/resnet_v2_fp32_savedmodel_NHWC_jpg.tar.gz
+        
+        tar -C models/ -xzvf models/resnet_v2_fp32_savedmodel_NHWC_jpg.tar.gz
+        mv models/resnet_v2_fp32_savedmodel_NHWC_jpg models/resnet
+        find .
+        cp .env.example .env
+
+    - name: Build Docker image with packages
+      run: docker-compose build
+    
+    - name: Start containers via Docker-Compose
+      run: docker-compose up -d
+    
+    - name: Initialize Django database
+      run: |
+        docker-compose exec -t web /bin/sh -c \
+        "python3 manage.py makemigrations imageRepository \
+        && python3 manage.py migrate"
+
+
+  unit-test:
+    needs: setup
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Run unit tests
+      run: |
+        docker-compose exec -t web \
+          python3 manage.py test
